@@ -1,0 +1,52 @@
+name: Build FreshMate iOS (unsigned IPA)
+
+on:
+  workflow_dispatch:      # lets you press "Run workflow" manually
+  push:
+    branches: [ main ]
+
+env:
+  QT_VERSION: "6.8.3"
+
+jobs:
+  build-ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Qt (macOS host tools + iOS target)
+        run: |
+          pip install aqtinstall
+          # Host Qt is required: moc/rcc/qmlcachegen run on the Mac during the iOS build
+          aqt install-qt mac desktop $QT_VERSION clang_64 -m qtmultimedia -O $HOME/Qt
+          aqt install-qt mac ios     $QT_VERSION ios      -m qtmultimedia -O $HOME/Qt
+          ls $HOME/Qt/$QT_VERSION
+
+      - name: Configure (Xcode project)
+        run: |
+          $HOME/Qt/$QT_VERSION/ios/bin/qt-cmake \
+            -S . -B build -G Xcode \
+            -DQT_HOST_PATH=$HOME/Qt/$QT_VERSION/macos
+
+      - name: Build for a real iPhone, unsigned
+        run: |
+          cmake --build build --config Release -- \
+            -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      - name: Package .ipa
+        run: |
+          APP=$(find build -name "FreshMate.app" -path "*Release-iphoneos*" | head -n1)
+          echo "Found: $APP"
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          zip -qry FreshMate-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FreshMate-unsigned-ipa
+          path: FreshMate-unsigned.ipa
