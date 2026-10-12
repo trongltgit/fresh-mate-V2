@@ -1,0 +1,14 @@
+# Render Blueprint: push this whole project to GitHub, then Render -> New -> Blueprint.
+services:
+  - type: web
+    name: fresh-mate
+    runtime: node
+    plan: free
+    rootDir: render-proxy
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: APP_TOKEN
+        sync: false
