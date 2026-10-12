@@ -54,4 +54,10 @@ if(IOS)
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY        "1,2"
         XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET    "16.0"
     )
+
+    # Use Apple's built-in media backend; the FFmpeg backend can't link here.
+    qt_import_plugins(FreshMate
+        INCLUDE Qt6::QDarwinMediaPlugin
+        EXCLUDE Qt6::QFFmpegMediaPlugin
+    )
 endif()
