@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.21)
 project(FreshMate VERSION 2.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(IOS)
+    enable_language(OBJCXX)
+    set(CMAKE_OBJCXX_STANDARD 17)
+endif()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -15,7 +19,15 @@ qt_add_executable(FreshMate
     src/appcontroller.cpp  src/appcontroller.h
     src/ai_service.cpp     src/ai_service.h
     src/pantry_db.cpp      src/pantry_db.h
+    src/nativemedia.h
 )
+
+if(IOS)
+    target_sources(FreshMate PRIVATE src/nativemedia.mm)
+    set_source_files_properties(src/nativemedia.mm PROPERTIES COMPILE_FLAGS "-fobjc-arc")
+else()
+    target_sources(FreshMate PRIVATE src/nativemedia.cpp)
+endif()
 
 qt_add_qml_module(FreshMate
     URI FreshMate
@@ -54,6 +66,9 @@ if(IOS)
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY        "1,2"
         XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET    "16.0"
     )
+
+    # Native camera / photo picker
+    target_link_libraries(FreshMate PRIVATE "-framework UIKit" "-framework PhotosUI")
 
     # Use Apple's built-in media backend; the FFmpeg backend can't link here.
     qt_import_plugins(FreshMate

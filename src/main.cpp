@@ -6,9 +6,14 @@
 #include "appcontroller.h"
 #include "ai_service.h"
 #include "pantry_db.h"
+#include "nativemedia.h"
 
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_IOS
+    // Use Apple's own media backend (the FFmpeg one is not shipped for iOS).
+    qputenv("QT_MEDIA_BACKEND", "darwin");
+#endif
     QGuiApplication app(argc, argv);
     app.setApplicationName("FreshMate");
     app.setOrganizationName("FreshMate");
@@ -16,10 +21,12 @@ int main(int argc, char *argv[])
     PantryDb db;
     AiService ai;
     AppController controller(&db, &ai);
+    NativeMedia nativeMedia;
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appController", &controller);
     engine.rootContext()->setContextProperty("aiService", &ai);
+    engine.rootContext()->setContextProperty("nativeMedia", &nativeMedia);
 
     // Diagnostic build: collect any QML warnings/errors instead of exiting
     // silently. This is what makes a real problem in Main.qml show up as

@@ -5,6 +5,7 @@
 #include <QGuiApplication>
 #include <QFile>
 #include <QDir>
+#include <QFileInfo>
 #include <QUrl>
 #include <QUuid>
 #include <QImage>
@@ -94,7 +95,8 @@ public:
             return {};
         }
         // remove the raw camera temp file, keep the processed copy
-        if (s.startsWith(cacheDir())) QFile::remove(s);
+        if (s.startsWith(cacheDir()) || QFileInfo(s).fileName().startsWith(QLatin1String("fm_native_")))
+            QFile::remove(s);
         return out;
     }
 

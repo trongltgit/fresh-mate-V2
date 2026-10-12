@@ -109,6 +109,30 @@ ApplicationWindow {
         videoOutput: viewfinder
     }
 
+    // ── iOS native camera / photo picker results ─────────────────────────────
+    Connections {
+        target: nativeMedia
+        function onImagePicked(path) {
+            const local = appController.prepareImage(path)
+            if (local === "") {
+                analyzeStatus.text = "Could not open that photo. Try another one."
+                analyzeStatus.color = "#ef4444"
+                analyzeStatus.visible = true
+                return
+            }
+            win.photoPath = local
+            preview.source = "file://" + local
+            analyzeStatus.text = "Photo ready. Tap 'Analyze with AI'."
+            analyzeStatus.color = "#94a3b8"
+            analyzeStatus.visible = true
+        }
+        function onFailed(message) {
+            analyzeStatus.text = message
+            analyzeStatus.color = "#ef4444"
+            analyzeStatus.visible = true
+        }
+    }
+
     // ── AppController connections ─────────────────────────────────────────────
     Connections {
         target: appController
@@ -673,6 +697,11 @@ ApplicationWindow {
                         contentItem: Text { text: parent.text; font: parent.font; color: "#052e16"; horizontalAlignment: Text.AlignHCenter }
                         background: Rectangle { color: "#22c55e"; radius: 8 }
                         onClicked: {
+                            if (nativeMedia.available) {      // iOS: Apple's own camera screen
+                                camera.active = false
+                                nativeMedia.takePhoto()
+                                return
+                            }
                             if (mediaDevices.videoInputs.length === 0) {
                                 analyzeStatus.text = "No camera found on this device."
                                 analyzeStatus.color = "#ef4444"
@@ -693,7 +722,11 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         contentItem: Text { text: parent.text; font: parent.font; color: "#052e16"; horizontalAlignment: Text.AlignHCenter }
                         background: Rectangle { color: "#22c55e"; radius: 8 }
-                        onClicked: { camera.active = false; galleryDialog.open() }
+                        onClicked: {
+                            camera.active = false
+                            if (nativeMedia.available) nativeMedia.pickPhoto()   // iOS photo library
+                            else galleryDialog.open()
+                        }
                     }
                 }
 
