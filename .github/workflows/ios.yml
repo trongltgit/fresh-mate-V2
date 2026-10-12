@@ -1,7 +1,7 @@
 name: Build FreshMate iOS (unsigned IPA)
 
 on:
-  workflow_dispatch:      # lets you press "Run workflow" manually
+  workflow_dispatch:
   push:
     branches: [ main ]
 
@@ -21,7 +21,6 @@ jobs:
       - name: Install Qt (macOS host tools + iOS target)
         run: |
           pip install aqtinstall
-          # Host Qt is required: moc/rcc/qmlcachegen run on the Mac during the iOS build
           aqt install-qt mac desktop $QT_VERSION clang_64 -m qtmultimedia -O $HOME/Qt
           aqt install-qt mac ios     $QT_VERSION ios      -m qtmultimedia -O $HOME/Qt
           ls $HOME/Qt/$QT_VERSION
@@ -34,9 +33,21 @@ jobs:
 
       - name: Build for a real iPhone, unsigned
         run: |
+          set +e
           cmake --build build --config Release -- \
             -sdk iphoneos \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            2>&1 | tee build.log
+          status=${PIPESTATUS[0]}
+          if [ $status -ne 0 ]; then
+            echo ""
+            echo "=========== ERROR SUMMARY ==========="
+            grep -n -E "error:|Undefined symbols|ld: |fatal error|BUILD FAILED|FAILED" build.log | head -60
+            echo "=========== LAST LINES (notes removed) ==========="
+            grep -v "^note:" build.log | grep -v "^$" | tail -40
+            echo "=========== END ==========="
+            exit $status
+          fi
 
       - name: Package .ipa
         run: |
