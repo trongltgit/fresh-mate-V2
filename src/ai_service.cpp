@@ -13,21 +13,22 @@ AIService::AIService(QObject *parent) : QObject(parent) {
 }
 
 void AIService::sendMessage(const QString &userMessage) {
-    // 1. Sử dụng URL lấy từ file proxy_config.h
-    QUrl proxyUrl(FRESHMATE_PROXY_URL);
+    // Sử dụng trực tiếp chuỗi URL từ file proxy_config.h để tránh lỗi biên dịch vĩ lệnh (macro expansion)
+    QString urlStr = QString(FRESHMATE_PROXY_URL);
+    QUrl proxyUrl(urlStr);
     
     QNetworkRequest request(proxyUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    // 2. Thêm token xác thực nếu có cấu hình trong proxy_config.h
-    QString appToken = FRESHMATE_APP_TOKEN;
+    // Thêm token bảo mật nếu có
+    QString appToken = QString(FRESHMATE_APP_TOKEN);
     if (!appToken.isEmpty()) {
         request.setRawHeader("x-app-token", appToken.toUtf8());
     }
 
-    // 3. Đóng gói dữ liệu JSON gửi lên Proxy (khớp với allowed models trên server)
+    // Đóng gói JSON payload
     QJsonObject payload;
-    payload["model"] = "openai/gpt-oss-20b"; // Hoặc qwen/qwen3.8-27b
+    payload["model"] = "openai/gpt-oss-20b"; // Hoặc model tương ứng trên proxy
 
     QJsonArray messagesArray;
     QJsonObject messageObj;
@@ -39,7 +40,7 @@ void AIService::sendMessage(const QString &userMessage) {
 
     QJsonDocument doc(payload);
     
-    // 4. Thực thi gửi request
+    // Gửi request POST tới Render Proxy
     QNetworkReply *reply = m_networkManager->post(request, doc.toJson());
 
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
