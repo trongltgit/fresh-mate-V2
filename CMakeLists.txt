@@ -17,8 +17,9 @@ qt_standard_project_setup(REQUIRES 6.8)
 qt_add_executable(FreshMate
     src/main.cpp
     src/appcontroller.cpp  src/appcontroller.h
-    src/ai_service.cpp     src/ai_service.h
-    src/pantry_db.cpp      src/pantry_db.h
+    src/ai_service.cpp      src/ai_service.h
+    src/pantry_db.cpp       src/pantry_db.h
+    src/proxy_config.h      # <-- Đã thêm file cấu hình proxy tại đây
     src/nativemedia.h
 )
 
@@ -58,11 +59,11 @@ endif()
 
 if(IOS)
     set_target_properties(FreshMate PROPERTIES
-        MACOSX_BUNDLE_GUI_IDENTIFIER        "com.freshmate.app"
-        MACOSX_BUNDLE_BUNDLE_NAME           "FreshMate"
-        MACOSX_BUNDLE_BUNDLE_VERSION        "1"
-        MACOSX_BUNDLE_SHORT_VERSION_STRING  "${PROJECT_VERSION}"
-        MACOSX_BUNDLE_INFO_PLIST            "${CMAKE_CURRENT_SOURCE_DIR}/ios/Info.plist"
+        MACOSX_BUNDLE_GUI_IDENTIFIER         "com.freshmate.app"
+        MACOSX_BUNDLE_BUNDLE_NAME            "FreshMate"
+        MACOSX_BUNDLE_BUNDLE_VERSION         "1"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING   "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_INFO_PLIST             "${CMAKE_CURRENT_SOURCE_DIR}/ios/Info.plist"
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY        "1,2"
         XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET    "16.0"
     )
