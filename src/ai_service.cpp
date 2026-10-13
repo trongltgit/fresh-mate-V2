@@ -1,5 +1,4 @@
 #include "ai_service.h"
-#include "proxy_config.h"
 #include <QNetworkRequest>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -13,22 +12,15 @@ AIService::AIService(QObject *parent) : QObject(parent) {
 }
 
 void AIService::sendMessage(const QString &userMessage) {
-    // Sử dụng trực tiếp chuỗi URL từ file proxy_config.h để tránh lỗi biên dịch vĩ lệnh (macro expansion)
-    QString urlStr = QString(FRESHMATE_PROXY_URL);
-    QUrl proxyUrl(urlStr);
+    // Gán trực tiếp URL Render của bạn tại đây để tránh mọi lỗi vĩ lệnh (macro) của Xcode
+    QUrl proxyUrl("https://fresh-mate-v2.onrender.com/ai");
     
     QNetworkRequest request(proxyUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    // Thêm token bảo mật nếu có
-    QString appToken = QString(FRESHMATE_APP_TOKEN);
-    if (!appToken.isEmpty()) {
-        request.setRawHeader("x-app-token", appToken.toUtf8());
-    }
-
-    // Đóng gói JSON payload
+    // Đóng gói JSON payload chuẩn theo định dạng proxy yêu cầu
     QJsonObject payload;
-    payload["model"] = "openai/gpt-oss-20b"; // Hoặc model tương ứng trên proxy
+    payload["model"] = "openai/gpt-oss-20b"; // Khớp với ALLOWED_MODELS trên server Node.js
 
     QJsonArray messagesArray;
     QJsonObject messageObj;
