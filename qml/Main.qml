@@ -686,6 +686,14 @@ ApplicationWindow {
                     Layout.fillWidth: true
                 }
 
+                // Build stamp: lets you verify at a glance which build is installed
+                Text {
+                    text: "build v3 · native camera: " + (nativeMedia.available ? "yes" : "no")
+                          + " · proxy: " + (aiService.usingProxy ? "yes" : "NO (asks for API key)")
+                    color: "#475569"; font.pixelSize: 11; wrapMode: Text.Wrap
+                    Layout.fillWidth: true
+                }
+
                 // Camera buttons row
                 RowLayout {
                     Layout.fillWidth: true
