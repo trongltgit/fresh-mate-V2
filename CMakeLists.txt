@@ -19,7 +19,7 @@ qt_add_executable(FreshMate
     src/appcontroller.cpp  src/appcontroller.h
     src/ai_service.cpp      src/ai_service.h
     src/pantry_db.cpp       src/pantry_db.h
-    src/proxy_config.h      # <-- Đã thêm file cấu hình proxy tại đây
+    src/proxy_config.h      
     src/nativemedia.h
 )
 
@@ -50,8 +50,6 @@ set_target_properties(FreshMate PROPERTIES
     QT_ANDROID_COMPILE_SDK_VERSION  35
     QT_ANDROID_PACKAGE_SOURCE_DIR   "${CMAKE_CURRENT_SOURCE_DIR}/android"
     QT_ANDROID_ABIS                 "arm64-v8a"
-    # OpenSSL 3 is NOT bundled with Qt. Without these two libs every HTTPS call
-    # (Groq AI) fails on the phone even though the web version works.
     QT_ANDROID_EXTRA_LIBS
         "${CMAKE_CURRENT_SOURCE_DIR}/android/libs/arm64-v8a/libssl_3.so;${CMAKE_CURRENT_SOURCE_DIR}/android/libs/arm64-v8a/libcrypto_3.so"
 )
@@ -67,6 +65,9 @@ if(IOS)
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY        "1,2"
         XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET    "16.0"
     )
+
+    # Đảm bảo bật include đúng thư mục nguồn cho CMake hiểu cấu trúc file
+    target_include_directories(FreshMate PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
     # Native camera / photo picker
     target_link_libraries(FreshMate PRIVATE "-framework UIKit" "-framework PhotosUI")
