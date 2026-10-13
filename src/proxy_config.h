@@ -5,4 +5,4 @@
 // Leave FRESHMATE_PROXY_URL empty to use the old "type your own key" mode.
 // ─────────────────────────────────────────────────────────────────────────────
 #define FRESHMATE_PROXY_URL   "https://fresh-mate-v2.onrender.com/ai"
-#define FRESHMATE_APP_TOKEN   ""
+#define FRESHMATE_APP_TOKEN   "06e7ae871537042719440d819cfcd5e3"
